@@ -1,98 +1,229 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Billing POS API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A NestJS backend for a billing/POS application with shop registration, admin and cashier authentication, product catalog management, cart handling, order checkout, and request logging.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Features
 
-## Description
+- Shop and business admin registration
+- Cashier registration by authenticated admins
+- JWT access and refresh token authentication
+- Role-based guards for admin and cashier workflows
+- Categories, sub-categories, and products
+- Cart item add, update, remove, and clear operations
+- Order checkout and order management
+- Activity and error logs for API requests
+- MongoDB persistence with Mongoose
+- Swagger API documentation
+- Global validation, exception formatting, and response formatting
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Tech Stack
 
-## Project setup
+- NestJS 11
+- TypeScript
+- MongoDB / Mongoose
+- Passport JWT
+- bcrypt
+- Swagger / OpenAPI
+- Jest
 
-```bash
-$ npm install
+## Project Structure
+
+```text
+src/
+  auth/              Authentication, JWT, login, registration
+  business-admins/   Business admin users
+  cashiers/          Cashier users
+  cart/              Cart operations
+  category/          Product categories
+  common/            Shared decorators, DTOs, enums, filters, interceptors
+  logs/              Activity and error logging
+  order/             Checkout and order APIs
+  product/           Product APIs
+  shops/             Shop APIs
+  sub-category/      Product sub-categories
+  app.module.ts      Root Nest module
+  main.ts            Application bootstrap
 ```
 
-## Compile and run the project
+## Requirements
 
-```bash
-# development
-$ npm run start
+- Node.js 20 or newer recommended
+- npm
+- MongoDB database
 
-# watch mode
-$ npm run start:dev
+## Environment Variables
 
-# production mode
-$ npm run start:prod
+Create a `.env` file in the project root:
+
+```env
+PORT=3000
+MONGO_URI=mongodb+srv://username:password
+JWT_ACCESS_SECRET=your_access_token_secret
+JWT_REFRESH_SECRET=your_refresh_token_secret
+JWT_ACCESS_EXPIRY=1d
+JWT_REFRESH_EXPIRY=7d
+GST_PERCENT=5
 ```
 
-## Run tests
+Important: do not use the default JWT secrets in production.
+
+## Installation
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm install
 ```
+
+## Run Locally
+
+```bash
+npm run start:dev
+```
+
+The API runs on:
+
+```text
+http://localhost:3000
+```
+
+Swagger documentation is available at:
+
+```text
+http://localhost:3000/api/docs
+```
+
+## Available Scripts
+
+```bash
+npm run build       # Build the application
+npm run start       # Start with Nest CLI
+npm run start:dev   # Start in watch mode
+npm run start:prod  # Run compiled dist/main.js
+npm run lint        # Run ESLint with fixes
+npm run format      # Format source and test files
+npm run test        # Run unit tests
+npm run test:e2e    # Run e2e tests
+npm run test:cov    # Run tests with coverage
+```
+
+## API Overview
+
+Base URL:
+
+```text
+http://localhost:3000
+```
+
+Main endpoints:
+
+```text
+GET    /                       Health check
+
+POST   /auth/register          Register a shop and admin account
+POST   /auth/register-cashier  Register a cashier, admin only
+POST   /auth/login             Login and receive tokens
+POST   /auth/refresh           Refresh access token
+
+GET    /shops                  List shops
+GET    /shops/:id              Get shop by ID
+
+GET    /business-admins        List business admins
+GET    /business-admins/:id    Get business admin by ID
+
+GET    /cashiers               List cashiers
+GET    /cashiers/:id           Get cashier by ID
+
+POST   /categories             Create category
+GET    /categories             List categories
+GET    /categories/:id         Get category by ID
+PATCH  /categories/:id         Update category
+DELETE /categories/:id         Delete category
+
+POST   /sub-categories         Create sub-category
+GET    /sub-categories         List sub-categories
+GET    /sub-categories/:id     Get sub-category by ID
+PATCH  /sub-categories/:id     Update sub-category
+DELETE /sub-categories/:id     Delete sub-category
+
+POST   /products               Create product
+GET    /products               List products
+GET    /products/:id           Get product by ID
+PATCH  /products/:id           Update product
+DELETE /products/:id           Delete product
+
+POST   /cart/add-item          Add item to cart
+PATCH  /cart/update-quantity   Update cart item quantity
+DELETE /cart/remove-item/:id   Remove product from cart
+DELETE /cart/clear             Clear cart
+GET    /cart                   Get current cart
+
+POST   /orders/checkout        Checkout cart
+GET    /orders                 List orders
+GET    /orders/:id             Get order by ID
+DELETE /orders/:id             Delete order
+
+GET    /logs/activity          List activity logs, admin only
+GET    /logs/errors            List error logs, admin only
+```
+
+Use Swagger at `/api/docs` for request body schemas, query parameters, and authorization details.
+
+## Authentication
+
+Login returns:
+
+```json
+{
+  "accessToken": "jwt-access-token",
+  "refreshToken": "jwt-refresh-token"
+}
+```
+
+Protected routes require:
+
+```text
+Authorization: Bearer <accessToken>
+```
+
+Admins can create cashiers and view logs. Cashiers can access cashier-scoped billing workflows according to the route guards configured in the application.
+
+## Response and Validation
+
+The application uses a global validation pipe with:
+
+- `whitelist: true`
+- `forbidNonWhitelisted: true`
+- `transform: true`
+
+Requests with unknown fields or invalid DTO values are rejected. Responses and exceptions are formatted globally through shared interceptors and filters.
 
 ## Deployment
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+Build the app:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm run build
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Start production:
 
-## Resources
+```bash
+npm run start:prod
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+For deployment platforms, configure these environment variables:
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```text
+PORT
+MONGO_URI
+JWT_ACCESS_SECRET
+JWT_REFRESH_SECRET
+JWT_ACCESS_EXPIRY
+JWT_REFRESH_EXPIRY
+GST_PERCENT
+```
 
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+Make sure `src/logs` is committed to git. The `.gitignore` should ignore only a root runtime logs folder using `/logs`, not the source module.
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+This project is currently marked as `UNLICENSED`.
