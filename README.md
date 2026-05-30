@@ -210,6 +210,13 @@ Start production:
 npm run start:prod
 ```
 
+Render deployment settings:
+
+```text
+Build Command: npm install && npm run build
+Start Command: npm start
+```
+
 For deployment platforms, configure these environment variables:
 
 ```text
