@@ -1,0 +1,586 @@
+# 🚀 NestJS Billing Application Requirements
+
+## Project Overview
+
+Build a production-ready Billing/POS Backend using NestJS and MongoDB (Mongoose).
+
+The system should allow administrators and cashiers to manage categories, subcategories, products, carts, and billing operations.
+
+---
+
+# Tech Stack
+
+* NestJS (Latest Version)
+* MongoDB
+* Mongoose
+* TypeScript
+* JWT Authentication
+* Swagger Documentation
+* Class Validator
+* ConfigModule
+* Pagination
+* Soft Delete
+* Generic CRUD Architecture
+* Role Based Access Control
+
+---
+
+# User Roles
+
+## ADMIN
+
+Permissions:
+
+* Manage Categories
+* Manage Sub Categories
+* Manage Products
+* View Orders
+* Manage Users
+
+## CASHIER
+
+Permissions:
+
+* View Categories
+* View Products
+* Manage Cart
+* Generate Bills
+* View Orders
+
+---
+
+# Project Structure
+
+```text
+src
+│
+├── auth
+├── users
+├── category
+├── sub-category
+├── product
+├── cart
+├── order
+│
+├── common
+│   ├── dto
+│   ├── decorators
+│   ├── guards
+│   ├── filters
+│   ├── interceptors
+│   ├── services
+│   └── enums
+│
+├── config
+├── database
+└── main.ts
+```
+
+---
+
+# Authentication Module
+
+Implement:
+
+* JWT Authentication
+* Login
+* Refresh Token
+* Roles Guard
+
+Required Components:
+
+```text
+JwtStrategy
+JwtAuthGuard
+RolesGuard
+```
+
+Role Enum:
+
+```ts
+export enum UserRole {
+  ADMIN = 'ADMIN',
+  CASHIER = 'CASHIER',
+}
+```
+
+---
+
+# Category Module
+
+A category represents a top-level grouping of products.
+
+Examples:
+
+* Beverages
+* Food
+* Desserts
+* Snacks
+
+## Schema
+
+```ts
+{
+  _id: ObjectId,
+  name: string,
+  description?: string,
+  isActive: boolean,
+  deletedAt?: Date,
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+## Endpoints
+
+```http
+POST   /categories
+GET    /categories
+GET    /categories/:id
+PATCH  /categories/:id
+DELETE /categories/:id
+```
+
+## Features
+
+* Search
+* Pagination
+* Soft Delete
+
+---
+
+# Sub Category Module
+
+A category can contain multiple subcategories.
+
+Example:
+
+```text
+Beverages
+ ├── Hot
+ └── Cold
+
+Food
+ ├── Veg
+ └── Non-Veg
+```
+
+## Schema
+
+```ts
+{
+  _id: ObjectId,
+  name: string,
+  categoryId: ObjectId,
+  isActive: boolean,
+  deletedAt?: Date,
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+## Endpoints
+
+```http
+POST   /sub-categories
+GET    /sub-categories
+GET    /sub-categories/:id
+PATCH  /sub-categories/:id
+DELETE /sub-categories/:id
+```
+
+## Features
+
+* Populate category
+* Search
+* Pagination
+
+---
+
+# Product Module
+
+Products belong to a subcategory.
+
+Example:
+
+```text
+Beverages
+ └── Hot
+      ├── Coffee
+      ├── Tea
+      └── Cappuccino
+
+Beverages
+ └── Cold
+      ├── Coke
+      ├── Pepsi
+      └── Sprite
+```
+
+## Schema
+
+```ts
+{
+  _id: ObjectId,
+  name: string,
+  description?: string,
+  price: number,
+  subCategoryId: ObjectId,
+  image?: string,
+  isAvailable: boolean,
+  deletedAt?: Date,
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+## Endpoints
+
+```http
+POST   /products
+GET    /products
+GET    /products/:id
+PATCH  /products/:id
+DELETE /products/:id
+```
+
+## Features
+
+* Populate subcategory
+* Populate category
+* Search by product name
+* Filter by category
+* Filter by subcategory
+* Pagination
+
+---
+
+# Cart Module
+
+The cart stores temporary billing data before checkout.
+
+## Schema
+
+```ts
+{
+  _id: ObjectId,
+  cashierId: ObjectId,
+
+  items: [
+    {
+      productId: ObjectId,
+      productName: string,
+      quantity: number,
+      unitPrice: number,
+      totalPrice: number
+    }
+  ],
+
+  subtotal: number,
+  tax: number,
+  grandTotal: number,
+
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+## Endpoints
+
+```http
+POST   /cart/add-item
+PATCH  /cart/update-quantity
+DELETE /cart/remove-item/:productId
+DELETE /cart/clear
+GET    /cart
+```
+
+## Business Rules
+
+### Add Item
+
+```text
+Coffee × 2 = ₹40
+Tea × 1 = ₹15
+```
+
+### Auto Calculation
+
+```text
+Subtotal = Sum(item totals)
+
+Tax = Configurable GST
+
+Grand Total = Subtotal + Tax
+```
+
+---
+
+# Order / Billing Module
+
+When checkout occurs:
+
+1. Create Order
+2. Generate Bill Number
+3. Store Order
+4. Clear Cart
+
+## Schema
+
+```ts
+{
+  _id: ObjectId,
+
+  orderNumber: string,
+
+  cashierId: ObjectId,
+
+  items: [
+    {
+      productId: ObjectId,
+      productName: string,
+      quantity: number,
+      unitPrice: number,
+      totalPrice: number
+    }
+  ],
+
+  subtotal: number,
+  tax: number,
+  discount: number,
+  grandTotal: number,
+
+  paymentMethod: string,
+
+  orderStatus: string,
+
+  createdAt: Date
+}
+```
+
+---
+
+## Order Number Format
+
+```text
+ORD-20260530-0001
+ORD-20260530-0002
+ORD-20260530-0003
+```
+
+---
+
+## Checkout Endpoint
+
+```http
+POST /orders/checkout
+```
+
+### Request
+
+```json
+{
+  "paymentMethod": "CASH",
+  "discount": 20
+}
+```
+
+### Response
+
+```json
+{
+  "orderNumber": "ORD-20260530-0001",
+  "subtotal": 500,
+  "tax": 25,
+  "discount": 20,
+  "grandTotal": 505
+}
+```
+
+---
+
+# Base CRUD Service
+
+Create a reusable generic service.
+
+```ts
+export abstract class BaseCrudService<T> {}
+```
+
+Methods:
+
+```ts
+create()
+findAll()
+findOne()
+update()
+softDelete()
+```
+
+All modules should extend this service where possible.
+
+---
+
+# Pagination
+
+Support:
+
+```http
+?page=1
+&limit=10
+&search=coffee
+```
+
+Standard Response:
+
+```json
+{
+  "data": [],
+  "total": 100,
+  "page": 1,
+  "limit": 10,
+  "totalPages": 10
+}
+```
+
+---
+
+# Swagger Documentation
+
+Document all endpoints.
+
+Use:
+
+```ts
+@ApiTags()
+@ApiBearerAuth()
+@ApiOperation()
+@ApiResponse()
+```
+
+Swagger URL:
+
+```text
+/api/docs
+```
+
+---
+
+# DTO Validation
+
+Use:
+
+* class-validator
+* class-transformer
+
+Examples:
+
+```ts
+@IsString()
+@IsNotEmpty()
+
+@IsMongoId()
+
+@IsNumber()
+@Min(0)
+```
+
+---
+
+# MongoDB Requirements
+
+All schemas should:
+
+```ts
+timestamps: true
+```
+
+Use indexes where appropriate.
+
+Example:
+
+```ts
+CategorySchema.index({
+  name: 1
+});
+```
+
+---
+
+# Additional Features
+
+## Soft Delete
+
+Instead of removing documents:
+
+```ts
+deletedAt: Date
+```
+
+Filter deleted records from queries.
+
+---
+
+## Search
+
+Support searching by:
+
+* Category Name
+* Sub Category Name
+* Product Name
+
+---
+
+## Filters
+
+Products:
+
+```http
+/products?categoryId=xxx
+/products?subCategoryId=xxx
+/products?search=coffee
+```
+
+---
+
+## Future Scalability
+
+Design architecture to easily support:
+
+* Table Management
+* Kitchen Order Tickets (KOT)
+* Printer Integration
+* GST Invoices
+* Discounts
+* Offers
+* Multi Branch Support
+* Inventory Management
+
+---
+
+# Deliverables
+
+Generate complete code for:
+
+* Folder Structure
+* Modules
+* Controllers
+* Services
+* DTOs
+* Schemas
+* Guards
+* Authentication
+* Swagger Setup
+* Pagination Utilities
+* Generic CRUD Service
+* Cart Calculation Logic
+* Billing Logic
+* Order Number Generation
+
+Follow:
+
+* NestJS Best Practices
+* SOLID Principles
+* Clean Architecture
+* Production-Ready Standards
+* Reusable Code Design
